@@ -1,10 +1,9 @@
 export default function GuestList({ guests, onUpdateStatus, onDeleteGuest, onEditGuest, activeTab, onSelectGuest }) {
-  
+
   const getBadgeClass = (status) => {
     switch(status) {
       case 'Confirmed': return 'badge badge-confirmed';
       case 'Arrived': return 'badge badge-arrived';
-      case 'Pending':
       default: return 'badge badge-pending';
     }
   };
@@ -12,18 +11,17 @@ export default function GuestList({ guests, onUpdateStatus, onDeleteGuest, onEdi
   const getStatusLabel = (status) => {
     switch(status) {
       case 'Confirmed': return 'Confirmado';
-      case 'Arrived': return 'Ya Llegaron';
-      case 'Pending':
+      case 'Arrived': return 'Ya Llegó';
       default: return 'Pendiente';
     }
   };
 
   const getEmptyMessage = () => {
     switch(activeTab) {
-      case 'Pending': return 'No hay familias pendientes de confirmar.';
+      case 'Pending': return 'No hay familias pendientes.';
       case 'Confirmed': return 'No hay familias confirmadas aún.';
       case 'Arrived': return 'Aún no han llegado familias.';
-      default: return 'No hay familias registradas aún. Haz clic en "Agregar Familia".';
+      default: return 'No hay familias registradas. Haz clic en "Agregar Familia".';
     }
   };
 
@@ -37,7 +35,7 @@ export default function GuestList({ guests, onUpdateStatus, onDeleteGuest, onEdi
               <th>Pases</th>
               <th>Mesa</th>
               <th>Estatus</th>
-              <th>Acciones</th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody>
@@ -49,51 +47,44 @@ export default function GuestList({ guests, onUpdateStatus, onDeleteGuest, onEdi
               </tr>
             ) : (
               guests.map((guest) => (
-                <tr key={guest.id} className="clickable-row" onClick={() => onSelectGuest(guest)}>
-                  <td className="family-name clickable-family">{guest.familyName}</td>
-                  <td>{guest.passes}</td>
-                  <td>{guest.table !== 'Sin mesa' ? `Mesa ${guest.table}` : 'Sin mesa'}</td>
-                  <td>
+                <tr
+                  key={guest.id}
+                  className={`guest-row ${guest.status === 'Arrived' ? 'row-arrived' : ''}`}
+                  onClick={() => guest.status === 'Arrived' && onSelectGuest(guest)}
+                >
+                  <td data-label="Familia" className="family-name">{guest.familyName}</td>
+                  <td data-label="Pases">{guest.passes}</td>
+                  <td data-label="Mesa">{guest.table !== 'Sin mesa' ? `Mesa ${guest.table}` : 'Sin mesa'}</td>
+                  <td data-label="Estatus">
                     <span className={getBadgeClass(guest.status)}>
                       {getStatusLabel(guest.status)}
                     </span>
                   </td>
-                  <td onClick={(e) => e.stopPropagation()}>
+                  <td data-label="Acción" onClick={(e) => e.stopPropagation()}>
                     <div className="action-buttons">
-                      {guest.status === 'Pending' && (
-                        <button 
-                          className="btn btn-action btn-outline-gold"
-                          onClick={() => onUpdateStatus(guest.id, 'Confirmed')}
-                          title="Marcar como Confirmado"
-                        >
-                          ✓ Confirmar
-                        </button>
-                      )}
-                      {(guest.status === 'Pending' || guest.status === 'Confirmed') && (
-                        <button 
-                          className="btn btn-action btn-success"
+                      {guest.status !== 'Arrived' && (
+                        <button
+                          className="btn btn-arrive"
                           onClick={() => onUpdateStatus(guest.id, 'Arrived')}
-                          title="Marcar Llegada"
                         >
-                          🥂 Ya Llegó
+                          ✓ Ya Llegó
                         </button>
                       )}
-                      
-                      <button 
-                        className="btn btn-action btn-icon"
-                        onClick={() => onEditGuest(guest)}
-                        title="Editar Familia"
-                      >
-                        ✏️
-                      </button>
-
-                      <button 
-                        className="btn btn-action btn-danger btn-icon"
-                        onClick={() => onDeleteGuest(guest.id)}
-                        title="Eliminar Familia"
-                      >
-                        🗑️
-                      </button>
+                      {guest.status === 'Arrived' && (
+                        <span className="arrived-check">✓</span>
+                      )}
+                      <div className="admin-actions">
+                        <button
+                          className="btn btn-icon-sm"
+                          onClick={() => onEditGuest(guest)}
+                          title="Editar"
+                        >✏️</button>
+                        <button
+                          className="btn btn-icon-sm btn-danger-sm"
+                          onClick={() => onDeleteGuest(guest.id)}
+                          title="Eliminar"
+                        >🗑️</button>
+                      </div>
                     </div>
                   </td>
                 </tr>

@@ -6,9 +6,10 @@ function App() {
   const [guests, setGuests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingGuest, setEditingGuest] = useState(null); // State for editing
-  const [selectedGuest, setSelectedGuest] = useState(null); // State for the modal
+  const [editingGuest, setEditingGuest] = useState(null);
+  const [selectedGuest, setSelectedGuest] = useState(null);
 
   useEffect(() => {
     fetchGuests();
@@ -99,9 +100,13 @@ function App() {
       });
 
       if (response.ok) {
-        setGuests(guests.map(guest => 
+        const updatedGuests = guests.map(guest =>
           guest.id === id ? { ...guest, status: newStatus } : guest
-        ));
+        );
+        setGuests(updatedGuests);
+        if (newStatus === 'Arrived') {
+          setSelectedGuest(updatedGuests.find(g => g.id === id));
+        }
       } else {
         console.error('Failed to update status', await response.text());
         alert('Hubo un error al actualizar el estatus.');
@@ -149,11 +154,13 @@ function App() {
   const totalPending = guests.filter(g => g.status === 'Pending').reduce((acc, g) => acc + g.passes, 0);
 
   const filteredGuests = guests.filter(guest => {
-    if (activeTab === 'All') return true;
-    if (activeTab === 'Pending') return guest.status === 'Pending';
-    if (activeTab === 'Confirmed') return guest.status === 'Confirmed';
-    if (activeTab === 'Arrived') return guest.status === 'Arrived';
-    return true;
+    const matchesTab =
+      activeTab === 'All' ||
+      (activeTab === 'Pending' && guest.status === 'Pending') ||
+      (activeTab === 'Confirmed' && guest.status === 'Confirmed') ||
+      (activeTab === 'Arrived' && guest.status === 'Arrived');
+    const matchesSearch = guest.familyName.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTab && matchesSearch;
   });
 
   return (
@@ -202,6 +209,21 @@ function App() {
             />
           </div>
         )}
+
+        {/* Search */}
+        <div className="search-container">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Buscar familia..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button className="search-clear" onClick={() => setSearchQuery('')}>×</button>
+          )}
+        </div>
 
         {/* Tabs */}
         <div className="tabs-container">
